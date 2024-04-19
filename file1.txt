@@ -1,0 +1,150 @@
+# Exp 1
+import pandas as pd
+import numpy as np
+import io
+
+url = 'https://raw.githubusercontent.com/Evozone/ADS_LAB/main/Microsoft_Stock.csv'
+data = pd.read_csv(url)
+
+data.head()
+# Run the cell only if you need to view the structure of data again, I am hiding it.
+
+# Select only the numerical columns from the data
+numerical_data = data.select_dtypes(include=np.number)
+
+# Calculate mean, median, and mode for each column
+central_tendency_results = pd.DataFrame({
+    'Mean': numerical_data.mean(),
+    'Median': numerical_data.median(),
+    'Mode': numerical_data.mode().iloc[0],
+})
+
+central_tendency_results
+
+def var(df):
+    n = len(df)
+    mean = df.mean()
+    squared_diff = (df - mean) ** 2
+    sum_squared_diff = squared_diff.sum()
+    return sum_squared_diff / (n - 1)
+
+def std_d(df):
+    return np.sqrt(var(df))
+
+def range_func(df):
+    return df.max() - df.min()
+
+def abs_d(df):
+    return (df - df.mean()).abs().mean()
+
+def describe_custom(df):
+    d = df.describe()
+    result = pd.concat([d.drop(['mean', 'std']), df.agg([std_d, var, range_func, abs_d])])
+    order = ['min', '25%', '50%', '75%', 'max', 'range_func', 'var', 'std_d', 'abs_d']
+    result = result.reindex(order)
+    return result
+
+describe_custom(numerical_data)
+
+
+def karl_pearson_skewness(df):
+    mean = df.mean()
+    median = df.median()
+    std = df.std()
+    skewness = 3 * (mean - median) / std
+    return skewness
+
+def skewness(df):
+    n = len(df)
+    mean = df.mean()
+    std = df.std()
+    skewness = (n / ((n - 1) * (n - 2))) * ((df - mean).pow(3).sum() / std**3)
+    return skewness
+
+def bowley_skewness(df):
+    bowley_coeffs = {}
+    for column in df.columns:
+        q1 = df[column].quantile(0.25)
+        q2 = df[column].quantile(0.5)
+        q3 = df[column].quantile(0.75)
+
+        # Check for zero division or NaN values
+        if (q3 - q1) == 0 or np.isnan(q1) or np.isnan(q2) or np.isnan(q3):
+            bowley_coeffs[column] = np.nan
+        else:
+            bowley_coeffs[column] = (q3 - 2*q2 + q1) / (q3 - q1)
+    return pd.Series(bowley_coeffs)
+
+# Calculate Karl Pearson's coefficient manually
+karl_pearson_coefficients = karl_pearson_skewness(numerical_data)
+
+# Calculate Bowley's coefficient for each column
+bowley_coefficients = bowley_skewness(numerical_data)
+
+# Calculate skewness using Pandas' skew() method
+pandas_skewness = numerical_data.skew()
+
+# Calculate skewness normally
+calculated_skewness = skewness(numerical_data)
+
+# Create a DataFrame to compare results
+skewness_comparison = pd.DataFrame({
+    'Pandas Skewness': pandas_skewness,
+    'Calculated Skewness': calculated_skewness,
+    'Karl Pearson Skewness': karl_pearson_coefficients,
+    'Bowley`s Skewness': bowley_coefficients
+})
+
+skewness_comparison
+
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+# Set the style of seaborn
+sns.set(style="whitegrid")
+
+# Create subplots
+fig, axes = plt.subplots(nrows=3, ncols=2, figsize=(16, 12))
+fig.subplots_adjust(hspace=0.5)
+
+# Flatten the axes for easy iteration
+axes = axes.flatten()
+
+# Loop through each numerical column
+for i, column in enumerate(numerical_data.columns):
+    # Plot the density plot
+    sns.kdeplot(numerical_data[column], ax=axes[i], fill=True, color='skyblue', linewidth=2)
+
+    # Mark the median with a vertical line
+    axes[i].axvline(x=numerical_data[column].median(), color='red', linestyle='--', label='Median')
+
+    # Set labels and title
+    axes[i].set_title(f'{column} - Skewness: {numerical_data[column].skew():.2f}')
+    axes[i].set_xlabel('')
+    axes[i].set_ylabel('Density')
+
+# Show the plot
+plt.show()
+
+
+def custom_kurtosis(df):
+    mean = df.mean()
+    std = df.std()
+    n = len(df)
+
+    # Calculate the numerator
+    numerator = ((df - mean) ** 4).sum() / n
+
+    # Calculate the denominator
+    denominator = std ** 4
+
+    # Calculate kurtosis
+    kurtosis = numerator / denominator
+
+    return kurtosis
+
+# Calculate kurtosis for each column
+kurtosis_values = custom_kurtosis(numerical_data)
+kurtosis_values
+
+

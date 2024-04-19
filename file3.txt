@@ -1,0 +1,298 @@
+# Exp 3
+
+import pandas as pd
+
+# Load dataset from the provided link
+url = "https://raw.githubusercontent.com/Evozone/ADS_LAB/main/titanic-train.csv"
+titanic_data = pd.read_csv(url)
+
+# Display the first few rows of the dataset to verify it was loaded correctly
+titanic_data.head()
+
+
+# Remove the "names" column from the dataset
+titanic_data.drop(columns=['Name', 'Ticket', 'Cabin'], inplace=True)
+
+print(titanic_data.shape)
+
+# Display the first few rows of the dataset to verify the column was removed
+titanic_data.head()
+
+
+from sklearn.preprocessing import LabelEncoder
+
+# Initialize LabelEncoder
+label_encoder = LabelEncoder()
+
+# Encode 'Sex' column
+titanic_data['Sex'] = label_encoder.fit_transform(titanic_data['Sex'])
+
+# Encode 'Embarked' column
+titanic_data['Embarked'] = label_encoder.fit_transform(titanic_data['Embarked'])
+
+# Display the updated dataset to verify the encoding
+titanic_data.head()
+
+
+from sklearn.model_selection import cross_val_score, train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import roc_auc_score
+
+# Method 1: Replace missing values with the mean of the column
+titanic_data_mean = titanic_data.fillna(titanic_data.mean())
+
+# Split the dataset into features and target variable
+X = titanic_data_mean.drop(columns=['Survived'])
+y = titanic_data_mean['Survived']
+
+# Split the data into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Initialize Logistic Regression model
+log_reg = LogisticRegression(max_iter=1000)
+
+# Train the model
+log_reg.fit(X_train, y_train)
+
+# Calculate the ROC AUC score
+roc_auc = roc_auc_score(y_test, log_reg.predict_proba(X_test)[:, 1])
+
+# Perform k-fold cross-validation
+cv_scores = cross_val_score(log_reg, X, y, cv=5)
+
+# Calculate training accuracy
+train_accuracy = log_reg.score(X_train, y_train)
+
+# Calculate testing accuracy
+test_accuracy = log_reg.score(X_test, y_test)
+
+# Print the results
+print("Method 1: Replace missing values with the mean of the column")
+print("Training Accuracy:", train_accuracy)
+print("Testing Accuracy:", test_accuracy)
+print("ROC AUC Score:", roc_auc)
+print("Cross-Validation Score:", cv_scores.mean())
+
+
+# Method 2: Replace missing values with the median of the column
+titanic_data_median = titanic_data.fillna(titanic_data.median())
+
+# Split the dataset into features and target variable
+X_median = titanic_data_median.drop(columns=['Survived'])
+y_median = titanic_data_median['Survived']
+
+# Split the data into training and testing sets
+X_train_median, X_test_median, y_train_median, y_test_median = train_test_split(X_median, y_median, test_size=0.2, random_state=42)
+
+# Initialize Logistic Regression model
+log_reg_median = LogisticRegression(max_iter=1000)
+
+# Train the model
+log_reg_median.fit(X_train_median, y_train_median)
+
+# Calculate the ROC AUC score
+roc_auc_median = roc_auc_score(y_test_median, log_reg_median.predict_proba(X_test_median)[:, 1])
+
+# Perform k-fold cross-validation
+cv_scores_median = cross_val_score(log_reg_median, X_median, y_median, cv=5)
+
+# Calculate training accuracy
+train_accuracy_median = log_reg_median.score(X_train_median, y_train_median)
+
+# Calculate testing accuracy
+test_accuracy_median = log_reg_median.score(X_test_median, y_test_median)
+
+# Print the results
+print("Method 2: Replace missing values with the median of the column")
+print("Training Accuracy:", train_accuracy_median)
+print("Testing Accuracy:", test_accuracy_median)
+print("ROC AUC Score:", roc_auc_median)
+print("Cross-Validation Score:", cv_scores_median.mean())
+
+# Method 3: Replace missing values with the mode of the column
+titanic_data_mode = titanic_data.fillna(titanic_data.mode().iloc[0])
+
+# Split the dataset into features and target variable
+X_mode = titanic_data_mode.drop(columns=['Survived'])
+y_mode = titanic_data_mode['Survived']
+
+# Split the data into training and testing sets
+X_train_mode, X_test_mode, y_train_mode, y_test_mode = train_test_split(X_mode, y_mode, test_size=0.2, random_state=42)
+
+# Initialize Logistic Regression model
+log_reg_mode = LogisticRegression(max_iter=1000)
+
+# Train the model
+log_reg_mode.fit(X_train_mode, y_train_mode)
+
+# Calculate the ROC AUC score
+roc_auc_mode = roc_auc_score(y_test_mode, log_reg_mode.predict_proba(X_test_mode)[:, 1])
+
+# Perform k-fold cross-validation
+cv_scores_mode = cross_val_score(log_reg_mode, X_mode, y_mode, cv=5)
+
+# Calculate training accuracy
+train_accuracy_mode = log_reg_mode.score(X_train_mode, y_train_mode)
+
+# Calculate testing accuracy
+test_accuracy_mode = log_reg_mode.score(X_test_mode, y_test_mode)
+
+# Print the results
+print("Method 3: Replace missing values with the mode of the column")
+print("Training Accuracy:", train_accuracy_mode)
+print("Testing Accuracy:", test_accuracy_mode)
+print("ROC AUC Score:", roc_auc_mode)
+print("Cross-Validation Score:", cv_scores_mode.mean())
+
+
+# Method 4: Delete rows with missing values entirely
+titanic_data_dropna = titanic_data.dropna()
+
+# Split the dataset into features and target variable
+X_dropna = titanic_data_dropna.drop(columns=['Survived'])
+y_dropna = titanic_data_dropna['Survived']
+
+# Split the data into training and testing sets
+X_train_dropna, X_test_dropna, y_train_dropna, y_test_dropna = train_test_split(X_dropna, y_dropna, test_size=0.2, random_state=42)
+
+# Initialize Logistic Regression model
+log_reg_dropna = LogisticRegression(max_iter=1000)
+
+# Train the model
+log_reg_dropna.fit(X_train_dropna, y_train_dropna)
+
+# Calculate the ROC AUC score
+roc_auc_dropna = roc_auc_score(y_test_dropna, log_reg_dropna.predict_proba(X_test_dropna)[:, 1])
+
+# Perform k-fold cross-validation
+cv_scores_dropna = cross_val_score(log_reg_dropna, X_dropna, y_dropna, cv=5)
+
+# Calculate training accuracy
+train_accuracy_dropna = log_reg_dropna.score(X_train_dropna, y_train_dropna)
+
+# Calculate testing accuracy
+test_accuracy_dropna = log_reg_dropna.score(X_test_dropna, y_test_dropna)
+
+# Print the results
+print("Method 4: Delete rows with missing values entirely")
+print("Training Accuracy:", train_accuracy_dropna)
+print("Testing Accuracy:", test_accuracy_dropna)
+print("ROC AUC Score:", roc_auc_dropna)
+print("Cross-Validation Score:", cv_scores_dropna.mean())
+
+
+from tabulate import tabulate
+
+# Define the data
+data = [
+    ["1: Replace missing values with the mean", train_accuracy, test_accuracy, roc_auc, cv_scores.mean()],
+    ["2: Replace missing values with the median", train_accuracy_median, test_accuracy_median, roc_auc_median, cv_scores_median.mean()],
+    ["3: Replace missing values with the mode", train_accuracy_mode, test_accuracy_mode, roc_auc_mode, cv_scores_mode.mean()],
+    ["4: Delete rows with missing values entirely",train_accuracy_dropna ,test_accuracy_dropna, roc_auc_dropna, cv_scores_dropna.mean()],
+]
+
+# Define the headers
+headers = ["Method", "Training Accuracy", "Testing Accuracy", "ROC AUC Score", "Cross-Validation Score"]
+
+# Print the table
+print(tabulate(data, headers=headers))
+
+
+titanic_data_mode
+
+from sklearn.model_selection import train_test_split, cross_val_score, StratifiedShuffleSplit
+from sklearn.metrics import accuracy_score, roc_auc_score
+from sklearn.preprocessing import StandardScaler
+
+# Load the preprocessed dataset (replace with your actual file path)
+reduced_dataset = titanic_data_mode.copy()
+
+# Split the dataset into features (x) and target variable (y)
+x = reduced_dataset.drop("Survived", axis=1)
+y = reduced_dataset["Survived"]
+
+# Split the data into training and testing sets
+x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.20,stratify=reduced_dataset['Survived'], random_state=42)
+
+# Scale the features using StandardScaler
+scaler = StandardScaler()
+x_scaled = scaler.fit_transform(x)
+x_train_scaled = scaler.fit_transform(x_train)
+x_test_scaled = scaler.transform(x_test)
+
+# Import necessary libraries
+from sklearn.linear_model import LogisticRegression
+import matplotlib.pyplot as plt
+from sklearn.metrics import accuracy_score, roc_curve, roc_auc_score, precision_recall_curve, auc, confusion_matrix, classification_report
+
+# Create and train the Logistic Regression model
+logreg_model = LogisticRegression(solver='lbfgs', max_iter=4000)
+logreg_model.fit(x_train_scaled, y_train)
+
+# Make predictions on training and testing sets
+y_pre = logreg_model.predict(x_train_scaled)
+y_pred = logreg_model.predict(x_test_scaled)
+y_pred1 = logreg_model.predict_proba(x_test_scaled)
+
+# Evaluate the model
+print("Training Accuracy_score: {}".format(accuracy_score(y_train, y_pre)))
+print("Testing Accuracy_score: {}".format(accuracy_score(y_test, y_pred)))
+print("roc_auc_score: {}".format(roc_auc_score(y_test, y_pred1[:, 1])))
+print("CV_score: {}".format(cross_val_score(logreg_model, x_scaled, y, cv=10, scoring='accuracy').mean()))
+
+# Calculate ROC curve
+fpr, tpr, thresholds = roc_curve(y_test, y_pred1[:, 1])
+
+# Calculate AUC score
+auc_score = roc_auc_score(y_test, y_pred1[:, 1])
+
+# Plot ROC curve
+plt.figure(figsize=(8, 6))
+plt.plot(fpr, tpr, label=f'ROC Curve (AUC = {auc_score:.2f})')
+plt.plot([0, 1], [0, 1], 'k--')
+plt.xlim([0.0, 1.0])
+plt.ylim([0.0, 1.05])
+plt.xlabel('False Positive Rate')
+plt.ylabel('True Positive Rate')
+plt.title('Receiver Operating Characteristic (ROC) Curve')
+plt.legend(loc="lower right")
+plt.show()
+
+# Import necessary libraries
+import numpy as np
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score, roc_curve, roc_auc_score, precision_recall_curve, auc, confusion_matrix, classification_report
+import matplotlib.pyplot as plt
+
+# Calculate precision, recall, and F1 score
+precision, recall, thresholds = precision_recall_curve(y_test, y_pred1[:, 1])
+
+# Plot Precision-Recall curve
+plt.figure(figsize=(8, 6))
+plt.plot(recall, precision, label='Precision-Recall curve')
+plt.xlabel('Recall')
+plt.ylabel('Precision')
+plt.title('Precision-Recall Curve')
+plt.legend(loc="lower right")
+plt.show()
+
+# Calculate AUC for precision-recall curve
+auc_score_pr = auc(recall, precision)
+print("AUC for Precision-Recall curve: {:.2f}".format(auc_score_pr))
+
+# Print classification report
+print("Classification Report:")
+print(classification_report(y_test, y_pred))
+
+import seaborn as sns
+
+# Calculate confusion matrix
+cm = confusion_matrix(y_test, y_pred)
+
+# Plot confusion matrix
+plt.figure(figsize=(8, 6))
+sns.heatmap(cm, annot=True, fmt='d', cmap='Blues')
+plt.title('Confusion Matrix')
+plt.xlabel('Predicted Labels')
+plt.ylabel('True Labels')
+plt.show()

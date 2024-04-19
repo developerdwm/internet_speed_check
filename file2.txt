@@ -1,0 +1,213 @@
+# Exp 2
+
+import pandas as pd
+import numpy as np
+import io
+
+url = 'https://raw.githubusercontent.com/Evozone/ADS_LAB/main/Microsoft_Stock.csv'
+data = pd.read_csv(url)
+shape = data.shape
+print(shape)
+
+data.head()
+# Run the cell only if you need to view the structure of data again, I am hiding it.
+
+
+numerical_data_plot = data.copy()
+numerical_data_plot['Date'] = pd.to_datetime(numerical_data_plot['Date'])
+# Extract month and year and create a new column
+numerical_data_plot['MonthYear'] = numerical_data_plot['Date'].dt.strftime('%m/%Y')
+numerical_data_plot['Year'] = numerical_data_plot['Date'].dt.strftime('%Y')
+numerical_data_plot.head(5000)
+
+
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+sns.set(style="whitegrid")  # Set the style of seaborn
+
+# Create a figure and two subplots
+fig, axes = plt.subplots(1, 2, figsize=(15, 5))  # Adjust the figure size as needed
+
+# Plot the first graph (Open price over time)
+sns.lineplot(data=numerical_data_plot, x='Date', y='Open', ax=axes[0])
+axes[0].set_xticks(numerical_data_plot['Date'][::len(numerical_data_plot) // 10].values)
+axes[0].set_xticklabels(numerical_data_plot['Year'][::len(numerical_data_plot) // 10])
+axes[0].set_xlabel('Time')
+axes[0].set_ylabel('Open price')
+axes[0].set_title('Line Plot of Open Price over time')
+
+# Plot the second graph (Volume over time)
+sns.lineplot(data=numerical_data_plot, x='Date', y='Volume', ax=axes[1])
+axes[1].set_xticks(numerical_data_plot['Date'][::len(numerical_data_plot) // 10].values)
+axes[1].set_xticklabels(numerical_data_plot['Year'][::len(numerical_data_plot) // 10])
+axes[1].set_xlabel('Time')
+axes[1].set_ylabel('Volume')
+axes[1].set_title('Line Plot of Volume over time')
+
+# Adjust layout
+plt.tight_layout()
+
+# Show the plot
+plt.show()
+
+
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+sns.set(style="whitegrid")  # Set the style of seaborn
+
+# Create a figure and three subplots
+fig, axes = plt.subplots(3, 1, figsize=(8, 15))  # Adjust the figure size as needed
+
+# Plot the first scatter plot (Volume vs Open)
+sns.scatterplot(data=numerical_data_plot, x='Open', y='Volume', ax=axes[0])
+axes[0].set_xlabel('Open price')
+axes[0].set_ylabel('Volume')
+axes[0].set_title('Scatter Plot of Open vs Volume')
+
+# Plot the second scatter plot (Close vs Volume)
+sns.scatterplot(data=numerical_data_plot, x='Volume', y='Close', ax=axes[1])
+axes[1].set_xlabel('Volume')
+axes[1].set_ylabel('Close Price')
+axes[1].set_title('Scatter Plot of Volume vs Close')
+
+# Plot the third scatter plot (High vs Low)
+sns.scatterplot(data=numerical_data_plot, x='High', y='Low', ax=axes[2])
+axes[2].set_xlabel('High price')
+axes[2].set_ylabel('Low price')
+axes[2].set_title('Scatter Plot of High vs Low')
+
+# Adjust layout
+plt.tight_layout()
+
+# Show the plots
+plt.show()
+
+
+import matplotlib.pyplot as plt
+
+# Assuming your dataset has three numerical columns: x, y, and z (where z represents the size of the bubble)
+x = numerical_data_plot['Date'].iloc[:100]
+y = numerical_data_plot['Open'].iloc[:100]
+z = numerical_data_plot['Volume'].iloc[:100]
+
+# Set the size of the bubbles based on the third variable (z)
+bubble_sizes = z / 100000 # Adjust the multiplier to control the size of the bubbles
+
+# Plot the bubble chart
+plt.figure(figsize=(10, 6))
+plt.scatter(x, y, s=bubble_sizes, alpha=0.5)
+
+# Add labels and title
+plt.xlabel('Time')
+plt.ylabel('Open Price')
+plt.title('Bubble Chart')
+
+# Show the plot
+plt.show()
+
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+sns.set(style="whitegrid")  # Set the style of seaborn
+
+# Create a figure and axes for the subplots
+fig, axes = plt.subplots(3, 2, figsize=(12, 12))  # 3 rows, 2 columns
+
+# Plot histograms for Close, Open, High, Low, and Volume
+sns.histplot(data=numerical_data_plot, x='Close', bins=20, ax=axes[0, 0])
+axes[0, 0].set_xlabel('Close price')
+axes[0, 0].set_ylabel('Frequency')
+axes[0, 0].set_title('Histogram of Close')
+
+sns.histplot(data=numerical_data_plot, x='Open', bins=20, ax=axes[0, 1])
+axes[0, 1].set_xlabel('Open price')
+axes[0, 1].set_ylabel('Frequency')
+axes[0, 1].set_title('Histogram of Open')
+
+sns.histplot(data=numerical_data_plot, x='High', bins=20, ax=axes[1, 0])
+axes[1, 0].set_xlabel('High price')
+axes[1, 0].set_ylabel('Frequency')
+axes[1, 0].set_title('Histogram of High')
+
+sns.histplot(data=numerical_data_plot, x='Low', bins=20, ax=axes[1, 1])
+axes[1, 1].set_xlabel('Low price')
+axes[1, 1].set_ylabel('Frequency')
+axes[1, 1].set_title('Histogram of Low')
+
+sns.histplot(data=numerical_data_plot, x='Volume', bins=20, ax=axes[2, 0])
+axes[2, 0].set_xlabel('Volume')
+axes[2, 0].set_ylabel('Frequency')
+axes[2, 0].set_title('Histogram of Volume')
+
+# Remove empty subplot
+fig.delaxes(axes[2, 1])
+
+# Adjust layout
+plt.tight_layout()
+
+# Show the plots
+plt.show()
+
+
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+sns.set(style="whitegrid")  # Set the style of seaborn
+
+# Create multivariate density plots
+sns.kdeplot(data=numerical_data_plot, x='Open', y='Volume', fill=True, cmap='viridis')
+plt.xlabel('Open price')
+plt.ylabel('Volume')
+plt.title('Density Plot of Close vs. Volume')
+
+plt.show()
+
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+sns.set(style="whitegrid")  # Set the style of seaborn
+
+# Create multivariate density plot
+sns.kdeplot(data=numerical_data_plot, x='Open', y='Volume', fill=True, cmap='viridis')
+
+# Overlay scatter plot
+sns.scatterplot(data=numerical_data_plot, x='Open', y='Volume', color='red', marker='o', alpha=0.5)
+
+# Set labels and title
+plt.xlabel('Open price')
+plt.ylabel('Volume')
+plt.title('Density Plot with Scatter Plot Overlay')
+
+plt.show()
+
+
+import seaborn as sns
+from sklearn.preprocessing import MinMaxScaler
+
+# Assuming your dataset has multiple numerical columns
+# For this example, let's assume you want to visualize quartiles for three variables: 'var1', 'var2', and 'var3'
+vars_to_plot = ['Open', 'Close', 'High', 'Low', 'Volume']
+
+# Create a MinMaxScaler object
+scaler = MinMaxScaler()
+
+# Fit the scaler to your numerical data and transform it
+scaled_data = scaler.fit_transform(numerical_data_plot[vars_to_plot])
+
+# Convert the scaled data back to a DataFrame
+scaled_df = pd.DataFrame(scaled_data, columns=vars_to_plot)
+
+# Create a boxplot for each variable
+plt.figure(figsize=(10, 6))
+sns.boxplot(data=scaled_df)
+
+# Add labels and title
+plt.xlabel('Variables')
+plt.ylabel('Scaled Values')
+plt.title('Multivariate Quartile Graph (Scaled Data)')
+
+# Show the plot
+plt.show()
+

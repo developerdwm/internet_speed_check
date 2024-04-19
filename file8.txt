@@ -1,0 +1,242 @@
+# Exp 8
+
+import pandas as pd
+
+# Load dataset from the provided link
+url = "https://raw.githubusercontent.com/RishabhMehra/Machine-Learning-with-Python-/main/wsb.csv"
+wsb_data = pd.read_csv(url)
+
+# Display the first few rows of the dataset to verify it was loaded correctly
+wsb_data.head(5)
+
+
+import numpy as np
+from statsmodels.tsa.seasonal import seasonal_decompose
+ts_decompose = seasonal_decompose(np.array(wsb_data["Sale Quantity"]), model= 'multiplicative',period = 12)
+
+wsb_data['seasonal'] = ts_decompose.seasonal
+wsb_data['trend'] = ts_decompose.trend
+
+wsb_data.head()
+
+## Plotting the deocomposed time series components
+ts_plot = ts_decompose.plot()
+
+# Convert the 'Month' column to a DateTime index starting from January 2017
+# Since the unit 'M' is no longer supported, we will use a workaround
+wsb_data['Month'] = pd.date_range(start='2017-01-01', periods=len(wsb_data), freq='MS')
+
+# Set the 'Month' column as the index
+wsb_data.set_index('Month', inplace=True)
+
+# Display the DataFrame with the new DateTime index
+wsb_data.head()
+
+import matplotlib.pyplot as plt
+
+plt.figure( figsize=(10,4))
+plt.xlabel("Date")
+plt.ylabel("Sale Quantity")
+plt.plot(wsb_data['Sale Quantity']);
+
+
+from statsmodels.tsa.stattools import adfuller
+
+def adfuller_test(ts):
+    adfuller_result = adfuller(ts, autolag=None)
+    adfuller_out = pd.Series(adfuller_result[0:4],
+                      index=['Test Statistic', 'p-value',
+                             'Lags Used',
+                             'Number of Observations Used'])
+    print(adfuller_out)
+
+adfuller_test(wsb_data['Sale Quantity'])
+
+wsb_data['Sale Quantity Diff'] = wsb_data['Sale Quantity'] - wsb_data['Sale Quantity'].shift(1)
+wsb_data.head()
+
+wsb__diff_data = wsb_data.dropna()
+plt.figure(figsize=(10,4))
+plt.xlabel('Date')
+plt.ylabel('First Order Differences')
+plt.plot(wsb__diff_data['Sale Quantity Diff'])
+
+from statsmodels.graphics.tsaplots import plot_acf
+
+# ACF
+plot_acf(wsb_data["Sale Quantity Diff"].dropna(), lags=10)
+plt.show()
+
+from statsmodels.graphics.tsaplots import plot_pacf
+
+# ACF
+plot_pacf(wsb_data["Sale Quantity Diff"].dropna(), lags=10)
+plt.show()
+
+import numpy as np
+from statsmodels.tsa.arima.model import ARIMA
+
+# Assuming 'wsb_data' is already defined and contains the dataset
+
+# Define the ARIMA model parameters
+p = 1
+q = 0
+d = 0
+
+# Split the data into training and test sets
+wsb_train = wsb_data.iloc[0:36]
+wsb_test = wsb_data.iloc[37:]
+
+# Convert the 'Sale Quantity' column to a NumPy array
+sale_quantity_array = wsb_train['Sale Quantity'].astype(np.float64).to_numpy()
+
+# Create the ARIMA model
+arima = ARIMA(sale_quantity_array, order=(p, d, q))
+
+# Fit the ARIMA model
+arima_model = arima.fit()
+
+# Display the summary of the ARIMA model
+print(arima_model.summary())
+
+
+# Assuming 'arima_model' is already defined and fitted with the ARIMA model
+
+# Forecast the future values
+wsb_forecast = arima_model.get_forecast(steps=11)
+
+# Extract the forecasted values, standard error, and confidence intervals
+wsb_predict = wsb_forecast.predicted_mean
+stderr = wsb_forecast.se_mean
+ci = wsb_forecast.conf_int()
+
+# Print the forecasted values
+print("Forecasted values:")
+print(wsb_predict)
+
+# Print the standard error
+print("\nStandard error:")
+print(stderr)
+
+# Print the confidence intervals
+print("\nConfidence intervals:")
+print(ci)
+
+from sklearn.metrics import mean_squared_error
+# Calculate RMSE
+test_values = wsb_test['Sale Quantity'].astype(np.float64).to_numpy()
+rmse_100 = np.sqrt(mean_squared_error(test_values, wsb_predict))
+
+# Calculate MAPE
+mape_100 = np.mean(np.abs((test_values - wsb_predict) / test_values)) * 100
+
+print("RMSE:", rmse_100)
+print("MAPE:", mape_100)
+
+import numpy as np
+import pandas as pd
+from statsmodels.tsa.arima.model import ARIMA
+from sklearn.metrics import mean_squared_error
+
+# Assuming 'wsb_data' is already defined and contains the dataset
+
+# Define the ARIMA model parameters
+orders = [(1, 0, 0), (0, 0, 1), (1, 0, 1)]  # Different ARIMA orders
+d = 1
+
+# Split the data into training and test sets
+wsb_train = wsb_data.iloc[0:36]
+wsb_test = wsb_data.iloc[37:]
+
+# Convert the 'Sale Quantity' column to a NumPy array
+sale_quantity_array = wsb_train['Sale Quantity'].astype(np.float64).to_numpy()
+
+# Initialize lists to store RMSE and MAPE values
+rmse_values = []
+mape_values = []
+
+# Iterate over different ARIMA orders
+for p, q, d in orders:
+    # Create the ARIMA model
+    arima = ARIMA(sale_quantity_array, order=(p, d, q))
+
+    # Fit the ARIMA model
+    arima_model = arima.fit()
+
+    # Make predictions
+    start_index = len(sale_quantity_array)
+    end_index = start_index + len(wsb_test) - 1
+    arima_predictions = arima_model.predict(start=start_index, end=end_index)
+
+    # Calculate RMSE
+    test_values = wsb_test['Sale Quantity'].astype(np.float64).to_numpy()
+    rmse = np.sqrt(mean_squared_error(test_values, arima_predictions))
+    rmse_values.append(rmse)
+
+    # Calculate MAPE
+    mape = np.mean(np.abs((test_values - arima_predictions) / test_values)) * 100
+    mape_values.append(mape)
+
+# Create DataFrame to represent RMSE and MAPE values in tabular form
+results_df = pd.DataFrame({
+    'Order': ['(1,0,0)', '(0,0,1)', '(1,0,1)'],
+    'RMSE': rmse_values,
+    'MAPE': mape_values
+})
+
+print(results_df)
+
+
+import numpy as np
+import pandas as pd
+from statsmodels.tsa.arima.model import ARIMA
+from sklearn.metrics import mean_squared_error
+
+# Assuming 'wsb_data' is already defined and contains the dataset
+
+# Define the ARIMA model parameters
+orders = [(1, 0, 0), (0, 0, 1), (1, 0, 1)]  # Different ARIMA orders
+d = 1
+
+# Split the data into training and test sets
+wsb_train = wsb_data.iloc[0:36]
+wsb_test = wsb_data.iloc[37:41]
+
+# Convert the 'Sale Quantity' column to a NumPy array
+sale_quantity_array = wsb_train['Sale Quantity'].astype(np.float64).to_numpy()
+
+# Initialize lists to store RMSE and MAPE values
+rmse_values = []
+mape_values = []
+
+# Iterate over different ARIMA orders
+for p, q, d in orders:
+    # Create the ARIMA model
+    arima = ARIMA(sale_quantity_array, order=(p, d, q))
+
+    # Fit the ARIMA model
+    arima_model = arima.fit()
+
+    # Make predictions
+    start_index = len(sale_quantity_array)
+    end_index = start_index + len(wsb_test) - 1
+    arima_predictions = arima_model.predict(start=start_index, end=end_index)
+
+    # Calculate RMSE
+    test_values = wsb_test['Sale Quantity'].astype(np.float64).to_numpy()
+    rmse = np.sqrt(mean_squared_error(test_values, arima_predictions))
+    rmse_values.append(rmse)
+
+    # Calculate MAPE
+    mape = np.mean(np.abs((test_values - arima_predictions) / test_values)) * 100
+    mape_values.append(mape)
+
+# Create DataFrame to represent RMSE and MAPE values in tabular form
+results_df = pd.DataFrame({
+    'Order': ['(1,0,0)', '(0,0,1)', '(1,0,1)'],
+    'RMSE': rmse_values,
+    'MAPE': mape_values
+})
+
+print(results_df)
+

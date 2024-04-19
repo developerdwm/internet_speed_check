@@ -1,0 +1,100 @@
+# Exp 5
+
+import pandas as pd
+
+# Load dataset from the provided link
+url = "https://raw.githubusercontent.com/Evozone/ADS_LAB/main/titanic-train.csv"
+titanic_data = pd.read_csv(url)
+
+# Display the first few rows of the dataset to verify it was loaded correctly
+titanic_data.head()
+
+
+# Remove the "names" column from the dataset
+titanic_data.drop(columns=['Name', 'Ticket', 'Cabin'], inplace=True)
+
+print(titanic_data.shape)
+
+# Display the first few rows of the dataset to verify the column was removed
+titanic_data.head()
+
+
+from sklearn.preprocessing import LabelEncoder
+
+# Initialize LabelEncoder
+label_encoder = LabelEncoder()
+
+# Encode 'Sex' column
+titanic_data['Sex'] = label_encoder.fit_transform(titanic_data['Sex'])
+
+# Encode 'Embarked' column
+titanic_data['Embarked'] = label_encoder.fit_transform(titanic_data['Embarked'])
+
+# Display the updated dataset to verify the encoding
+titanic_data.head()
+
+
+# Method 3: Replace missing values with the mode of the column
+titanic_data_mode = titanic_data.fillna(titanic_data.mode().iloc[0])
+
+# Subset the data for females
+female_data = titanic_data_mode[titanic_data_mode['Sex'] == 0]
+
+# Subset the data for males
+male_data = titanic_data_mode[titanic_data_mode['Sex'] == 1]
+
+import numpy as np
+from scipy.stats import norm
+
+# Total sample size
+total_size = 891
+
+print('Degreee of Freedom', total_size-1)
+
+# Sample sizes for females and males
+female_sample_size = len(female_data)
+male_sample_size = len(male_data)
+
+# Proportions of survival for females and males
+female_survival_proportion = female_data['Survived'].mean()
+male_survival_proportion = male_data['Survived'].mean()
+
+# Calculate standard errors
+female_se = np.sqrt(female_survival_proportion * (1 - female_survival_proportion) / female_sample_size)
+male_se = np.sqrt(male_survival_proportion * (1 - male_survival_proportion) / male_sample_size)
+
+# Calculate the pooled standard error
+pooled_se = np.sqrt(female_se**2 + male_se**2)
+
+# Calculate the test statistic
+test_statistic = (female_survival_proportion - male_survival_proportion) / pooled_se
+
+# Determine the critical value for a two-tailed test with alpha = 0.05
+critical_value = norm.ppf(1 - (0.05/2))
+
+# Compare the test statistic with the critical value
+if np.abs(test_statistic) > critical_value:
+    print('Calculated Value > Table value')
+    print(test_statistic, '>', critical_value)
+    print("Reject the null hypothesis, there is evidence that females were more likely to survive than males.")
+else:
+    print("Fail to reject the null hypothesis. there is NO evidence that females were more likely to survive than males.")
+
+
+import matplotlib.pyplot as plt
+
+# Generate values for the null distribution
+null_distribution = np.random.normal(0, 1, 10000)
+
+# Plot the histogram
+plt.figure(figsize=(8, 6))
+plt.hist(null_distribution, bins=30, density=True, alpha=0.5, color='blue', label='Null Distribution')
+plt.axvline(x=test_statistic, color='red', linestyle='--', label='Observed Test Statistic')
+plt.axvline(x=critical_value, color='green', linestyle='--', label='Critical value')
+plt.title('Distribution of Test Statistic under the Null Hypothesis')
+plt.xlabel('Test Statistic')
+plt.ylabel('Density')
+plt.legend()
+plt.show()
+
+

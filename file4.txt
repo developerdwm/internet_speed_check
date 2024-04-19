@@ -1,0 +1,94 @@
+# Exp 4
+
+import pandas as pd
+
+# Load dataset from the provided link
+url = "https://raw.githubusercontent.com/Evozone/ADS_LAB/main/titanic-train.csv"
+titanic_data = pd.read_csv(url)
+
+# Display the first few rows of the dataset to verify it was loaded correctly
+titanic_data.head()
+
+# Remove the "names" column from the dataset
+titanic_data.drop(columns=['Name', 'Ticket', 'Cabin'], inplace=True)
+
+print(titanic_data.shape)
+
+# Display the first few rows of the dataset to verify the column was removed
+titanic_data.head()
+
+
+from sklearn.preprocessing import LabelEncoder
+
+# Initialize LabelEncoder
+label_encoder = LabelEncoder()
+
+# Encode 'Sex' column
+titanic_data['Sex'] = label_encoder.fit_transform(titanic_data['Sex'])
+
+# Encode 'Embarked' column
+titanic_data['Embarked'] = label_encoder.fit_transform(titanic_data['Embarked'])
+
+# Display the updated dataset to verify the encoding
+titanic_data.head()
+
+
+# Method 3: Replace missing values with the mode of the column
+titanic_data_mode = titanic_data.fillna(titanic_data.mode().iloc[0])
+
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Plot the distribution of the 'Survived' column
+plt.figure(figsize=(6, 4))
+sns.countplot(x='Survived', data=titanic_data_mode)
+plt.title('Distribution of Survived')
+plt.xlabel('Survived')
+plt.ylabel('Count')
+plt.show()
+
+from imblearn.over_sampling import SMOTE
+
+# Separate features and target variable
+X_smote = titanic_data_mode.drop(columns=['Survived'])
+y_smote = titanic_data_mode['Survived']
+
+# Initialize SMOTE
+smote = SMOTE(random_state=42)
+
+# Apply SMOTE to the dataset
+X_resampled, y_resampled = smote.fit_resample(X_smote, y_smote)
+
+# Display the count of each class after applying SMOTE
+print("Class distribution after applying SMOTE:")
+print(y_resampled.value_counts())
+
+
+from sklearn.model_selection import train_test_split, cross_val_score
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import roc_auc_score
+
+# Split the resampled data into training and testing sets
+X_train_resampled, X_test_resampled, y_train_resampled, y_test_resampled = train_test_split(X_resampled, y_resampled, test_size=0.2, random_state=42)
+
+# Initialize Logistic Regression model
+log_reg_smote = LogisticRegression(max_iter=1000)
+
+# Train the model
+log_reg_smote.fit(X_train_resampled, y_train_resampled)
+
+# Calculate testing accuracy
+test_accuracy_smote = log_reg_smote.score(X_test_resampled, y_test_resampled)
+
+# Calculate the ROC AUC score
+roc_auc_smote = roc_auc_score(y_test_resampled, log_reg_smote.predict_proba(X_test_resampled)[:, 1])
+
+# Perform k-fold cross-validation
+cv_scores_smote = cross_val_score(log_reg_smote, X_resampled, y_resampled, cv=10)
+
+# Print the results
+print("Logistic Regression with SMOTE:")
+print("Testing Accuracy:", test_accuracy_smote)
+print("ROC AUC Score:", roc_auc_smote)
+print("Cross-Validation Score:", cv_scores_smote.mean())
+

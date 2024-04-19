@@ -1,0 +1,117 @@
+# Exp 7
+
+import pandas as pd
+
+# Load dataset from the provided link
+url = "https://raw.githubusercontent.com/RishabhMehra/Machine-Learning-with-Python-/main/wsb.csv"
+wsb_data = pd.read_csv(url)
+
+# Display the first few rows of the dataset to verify it was loaded correctly
+wsb_data
+
+
+wsb_data['mavg_12'] = wsb_data['Sale Quantity'].rolling(window = 12). mean().shift(1)
+
+pd.set_option('display.float_format', lambda x: '%.2f' % x)
+
+wsb_data
+
+import matplotlib.pyplot as plt;
+
+plt.figure(figsize=(10,4))
+plt.xlabel("Months")
+plt.ylabel("Quantity")
+plt.plot(wsb_data['Sale Quantity'][12:]);
+plt.plot(wsb_data['mavg_12'][12:], '.');
+plt.plot(wsb_data['Sale Quantity'][12:], label='Actual Sales Quantity')
+plt.plot(wsb_data['mavg_12'][12:], '.', label='Moving Average Forecast')
+plt.legend()
+
+import numpy as np
+
+def get_mape(actual, predicted):
+    y_true, y_pred = np.array(actual), np.array(predicted)
+    return np.round(np.mean(np.abs((actual - predicted) / actual)) * 100, 2)
+
+# Calculate MAPE for the 13th month
+mape_13th_month = get_mape(wsb_data['Sale Quantity'][12:24].values, wsb_data['mavg_12'][12:24].values)
+
+# Calculate MAPE for the 25th month
+mape_25th_month = get_mape(wsb_data['Sale Quantity'][24:36].values, wsb_data['mavg_12'][24:36].values)
+
+# Calculate MAPE for the 37th month
+mape_37th_month = get_mape(wsb_data['Sale Quantity'][36:].values, wsb_data['mavg_12'][36:].values)
+
+print("MAPE for the 13th month:", mape_13th_month)
+print("MAPE for the 25th month:", mape_25th_month)
+print("MAPE for the 37th month:", mape_37th_month)
+
+def get_rmse(actual, predicted):
+    # Calculate squared error
+    squared_error = (actual - predicted) ** 2
+    # Calculate mean squared error
+    MSE = np.mean(squared_error)
+    # Calculate root mean squared error
+    RMSE = np.sqrt(MSE)
+    return RMSE
+
+# Calculate RMSE for the 13th month
+rmse_13th_month = get_rmse(wsb_data['Sale Quantity'][12:24].values, wsb_data['mavg_12'][12:24].values)
+
+# Calculate RMSE for the 25th month
+rmse_25th_month = get_rmse(wsb_data['Sale Quantity'][24:36].values, wsb_data['mavg_12'][24:36].values)
+
+# Calculate RMSE for the 37th month
+rmse_37th_month = get_rmse(wsb_data['Sale Quantity'][36:].values, wsb_data['mavg_12'][36:].values)
+
+print("Root Mean Square Error for 13th month: {:.2f}".format(rmse_13th_month))
+print("Root Mean Square Error for 25th month: {:.2f}".format(rmse_25th_month))
+print("Root Mean Square Error for 37th month: {:.2f}".format(rmse_37th_month))
+
+# Set alpha value
+alpha = 0.3  # You can adjust this value based on your preference
+
+# Initialize the first forecast
+wsb_data['SES_Forecast'] = wsb_data['Sale Quantity'][0]
+
+# Update the forecast for each subsequent period
+for i in range(1, len(wsb_data)):
+    wsb_data.loc[i, 'SES_Forecast'] = alpha * wsb_data.loc[i, 'Sale Quantity'] + (1 - alpha) * wsb_data.loc[i-1, 'SES_Forecast']
+
+wsb_data
+
+# Plotting actual vs forecast
+plt.figure(figsize=(10, 4))
+plt.plot(wsb_data['Month'][12:], wsb_data['Sale Quantity'][12:], label='Actual')
+plt.plot(wsb_data['Month'][12:], wsb_data['SES_Forecast'][12:], label='SES Forecast')
+plt.xlabel('Month')
+plt.ylabel('Quantity')
+plt.title('Simple Exponential Smoothing Forecast')
+plt.legend()
+plt.show()
+
+# Calculate MAPE for the 13th month
+mape_13th_month = get_mape(wsb_data['Sale Quantity'][12:24].values, wsb_data['SES_Forecast'][12:24].values)
+
+# Calculate MAPE for the 25th month
+mape_25th_month = get_mape(wsb_data['Sale Quantity'][24:36].values, wsb_data['SES_Forecast'][24:36].values)
+
+# Calculate MAPE for the 37th month
+mape_37th_month = get_mape(wsb_data['Sale Quantity'][36:].values, wsb_data['SES_Forecast'][36:].values)
+
+print("MAPE for the 13th month:", mape_13th_month)
+print("MAPE for the 25th month:", mape_25th_month)
+print("MAPE for the 37th month:", mape_37th_month)
+
+# Calculate RMSE for the 13th month
+rmse_13th_month = get_rmse(wsb_data['Sale Quantity'][12:24].values, wsb_data['SES_Forecast'][12:24].values)
+
+# Calculate RMSE for the 25th month
+rmse_25th_month = get_rmse(wsb_data['Sale Quantity'][24:36].values, wsb_data['SES_Forecast'][24:36].values)
+
+# Calculate RMSE for the 37th month
+rmse_37th_month = get_rmse(wsb_data['Sale Quantity'][36:].values, wsb_data['SES_Forecast'][36:].values)
+
+print("Root Mean Square Error for 13th month: {:.2f}".format(rmse_13th_month))
+print("Root Mean Square Error for 25th month: {:.2f}".format(rmse_25th_month))
+print("Root Mean Square Error for 37th month: {:.2f}".format(rmse_37th_month))

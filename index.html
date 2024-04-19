@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Internet Speed Checker</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: white;
+        text-align: center;
+      }
+      #speedMeter {
+        width: 300px;
+        margin: 50px auto;
+        padding: 20px;
+        background-color: #fff;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        color: #333;
+      }
+      #speedDisplay {
+        font-size: 24px;
+        font-weight: bold;
+        margin-bottom: 20px;
+      }
+      #fileContents {
+        width: 80%;
+        margin: 0 auto;
+        text-align: left;
+        white-space: pre-wrap;
+        background-color: #fff;
+        border-radius: 10px;
+        padding: 20px;
+        color: white;
+      }
+      .fileButton {
+        margin: 10px;
+        padding: 10px 20px;
+        font-size: 16px;
+        border: none;
+        border-radius: 5px;
+        background-color: white;
+        color: #fff;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+      }
+      .fileButton:hover {
+        background-color: rgb(237, 226, 226);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="speedMeter">
+      <h1>Internet Speed Checker</h1>
+      <div id="speedDisplay">0 Mbps</div>
+    </div>
+
+    <div>
+      <button class="fileButton" onclick="loadFile('file1.txt')">File 1</button>
+      <button class="fileButton" onclick="loadFile('file2.txt')">File 2</button>
+      <button class="fileButton" onclick="loadFile('file3.txt')">File 3</button>
+      <button class="fileButton" onclick="loadFile('file4.txt')">File 4</button>
+      <button class="fileButton" onclick="loadFile('file5.txt')">File 5</button>
+      <button class="fileButton" onclick="loadFile('file6.txt')">File 6</button>
+      <button class="fileButton" onclick="loadFile('file7.txt')">File 7</button>
+      <button class="fileButton" onclick="loadFile('file8.txt')">File 8</button>
+    </div>
+    <div id="fileContents"></div>
+    <script>
+      // Function to simulate increasing internet speed
+      function increaseSpeed() {
+        let speed = 0;
+        const targetSpeed = 49.16; // Mbps
+        const duration = 3000; // 3 seconds
+        const increment = targetSpeed / (duration / 100); // Calculate increment per 100 milliseconds
+
+        const speedDisplay = document.getElementById("speedDisplay");
+
+        // Function to update speed display
+        function updateSpeed() {
+          speed += increment;
+          if (speed > targetSpeed) {
+            speed = targetSpeed;
+          }
+          speedDisplay.textContent = speed.toFixed(2) + " Mbps";
+
+          // Stop updating speed when target speed is reached
+          if (speed < targetSpeed) {
+            setTimeout(updateSpeed, 100); // Update speed every 100 milliseconds
+          }
+        }
+
+        // Start updating speed
+        updateSpeed();
+      }
+
+      // Function to fetch file contents and display them
+      function loadFile(fileName) {
+        fetch(fileName)
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error("Network response was not ok");
+            }
+            return response.text();
+          })
+          .then((data) => {
+            document.getElementById("fileContents").textContent = data;
+            copyToClipboard(data);
+          })
+          .catch((error) => {
+            console.error("There was a problem fetching the file:", error);
+          });
+      }
+      // Function to copy text to clipboard
+      function copyToClipboard(text) {
+        navigator.clipboard
+          .writeText(text)
+          .then(() => {
+            console.log("Text copied to clipboard");
+          })
+          .catch((err) => {
+            console.error("Could not copy text to clipboard: ", err);
+          });
+      }
+
+      // Call the function when the page loads
+      window.onload = increaseSpeed;
+    </script>
+  </body>
+</html>

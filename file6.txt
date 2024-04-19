@@ -1,0 +1,115 @@
+# Exp 6
+import pandas as pd
+
+# Load dataset from the provided link
+url = "https://raw.githubusercontent.com/Evozone/ADS_LAB/main/titanic-train.csv"
+titanic_data = pd.read_csv(url)
+
+# Display the first few rows of the dataset to verify it was loaded correctly
+titanic_data.head()
+
+# Remove the "names" column from the dataset
+titanic_data.drop(columns=['Name', 'Ticket', 'Cabin'], inplace=True)
+
+print(titanic_data.shape)
+
+# Display the first few rows of the dataset to verify the column was removed
+titanic_data.head()
+
+from sklearn.preprocessing import LabelEncoder
+
+# Initialize LabelEncoder
+label_encoder = LabelEncoder()
+
+# Encode 'Sex' column
+titanic_data['Sex'] = label_encoder.fit_transform(titanic_data['Sex'])
+
+# Encode 'Embarked' column
+titanic_data['Embarked'] = label_encoder.fit_transform(titanic_data['Embarked'])
+
+# Display the updated dataset to verify the encoding
+titanic_data.head()
+
+
+# Method 3: Replace missing values with the mode of the column
+titanic_data_mode = titanic_data.fillna(titanic_data.mode().iloc[0])
+
+from sklearn.neighbors import LocalOutlierFactor
+
+# Select features for outlier detection
+outlier_features = titanic_data_mode[['Age', 'Fare']]
+
+# Initialize LocalOutlierFactor model
+lof_model = LocalOutlierFactor(n_neighbors=15, contamination=0.1)
+
+# Fit the model and predict outliers
+outliers_prediction = lof_model.fit_predict(outlier_features)
+
+# Display the number of outliers
+num_outliers = sum(outliers_prediction == -1)
+print("Number of outliers:", num_outliers)
+
+import matplotlib.pyplot as plt
+
+# Add the outliers prediction to the original dataset
+titanic_data_mode['Outlier'] = outliers_prediction
+
+# Visualize outliers using a scatter plot
+plt.figure(figsize=(10, 6))
+plt.scatter(titanic_data_mode['Age'], titanic_data_mode['Fare'], c=titanic_data_mode['Outlier'], cmap='viridis')
+plt.title('Outlier Detection - Age vs. Fare')
+plt.xlabel('Age')
+plt.ylabel('Fare')
+plt.colorbar(label='Outlier')
+plt.show()
+
+
+# Remove outliers from the dataset
+titanic_data_no_outliers = titanic_data_mode[titanic_data_mode['Outlier'] != -1]
+
+# Display the shape of the dataset after removing outliers
+print("Shape after removing outliers:", titanic_data_no_outliers.shape)
+
+
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+
+# Select features and target variable
+X = titanic_data_no_outliers.drop(columns=['Survived'])
+y = titanic_data_no_outliers['Survived']
+
+# Split the data into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Initialize StandardScaler
+scaler = StandardScaler()
+
+# Scale the features
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score, roc_auc_score
+from sklearn.model_selection import cross_val_score
+
+# Initialize Logistic Regression model
+logistic_regression_model = LogisticRegression(max_iter=1000)
+
+# Train the model
+logistic_regression_model.fit(X_train_scaled, y_train)
+
+# Predict on the testing set
+y_pred = logistic_regression_model.predict(X_test_scaled)
+
+# Calculate testing accuracy
+accuracy = accuracy_score(y_test, y_pred)
+print("Testing Accuracy:", accuracy)
+
+# Calculate ROCAUC score
+roc_auc = roc_auc_score(y_test, y_pred)
+print("ROCAUC Score:", roc_auc)
+
+# Calculate 10-fold cross-validation score
+cv_scores = cross_val_score(logistic_regression_model, X_train_scaled, y_train, cv=10)
+print("Mean CV Score:", cv_scores.mean())
+
