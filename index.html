@@ -10,19 +10,26 @@
         background-color: white;
         text-align: center;
       }
+      .speedometer {
+        width: 138px;
+      }
+      h1 {
+        font-size: 53px;
+        margin: 0;
+      }
+      .speed-is {
+        font-size: 25px;
+        margin: 0;
+      }
       #speedMeter {
         width: 300px;
-        margin: 50px auto;
-        padding: 20px;
+        margin: 1px auto;
         background-color: #fff;
-        border-radius: 10px;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
         color: #333;
       }
       #speedDisplay {
-        font-size: 24px;
+        font-size: 150px;
         font-weight: bold;
-        margin-bottom: 20px;
       }
       #fileContents {
         width: 80%;
@@ -48,14 +55,43 @@
       .fileButton:hover {
         background-color: rgb(237, 226, 226);
       }
+      .speed-class {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 30px;
+        gap: 30px;
+      }
+      .mbps {
+        font-weight: bold;
+        font-size: 50px;
+      }
+      .recheck {
+        margin: 20px;
+        padding: 10px 20px;
+        font-size: 16px;
+        border: none;
+        border-radius: 5px;
+        background-color: grey;
+        color: #fff;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+      }
     </style>
   </head>
   <body>
     <div id="speedMeter">
-      <h1>Internet Speed Checker</h1>
-      <div id="speedDisplay">0 Mbps</div>
+      <img src="fast.jpeg" alt="Speedometer" class="speedometer" />
+      <h1>FAST</h1>
+      <h4 class="speed-is">Your Internet Speed is</h4>
+      <div class="speed-class">
+        <div id="speedDisplay">0</div>
+        <div class="mbps">Mbps</div>
+      </div>
     </div>
-
+    <button onclick="increaseSpeed()" class="recheck">
+      Recheck Internet Speed
+    </button>
     <div>
       <button class="fileButton" onclick="loadFile('file1.txt')">File 1</button>
       <button class="fileButton" onclick="loadFile('file2.txt')">File 2</button>
@@ -70,12 +106,18 @@
     <script>
       // Function to simulate increasing internet speed
       function increaseSpeed() {
-        let speed = 0;
-        const targetSpeed = 49.16; // Mbps
+        const minSpeed = 15; // Minimum speed in Mbps
+        const maxSpeed = 25; // Maximum speed in Mbps
+
+        // Generate a random speed between minSpeed and maxSpeed
+        const targetSpeed = Math.random() * (maxSpeed - minSpeed) + minSpeed;
+
         const duration = 3000; // 3 seconds
         const increment = targetSpeed / (duration / 100); // Calculate increment per 100 milliseconds
 
         const speedDisplay = document.getElementById("speedDisplay");
+
+        let speed = 0;
 
         // Function to update speed display
         function updateSpeed() {
@@ -83,7 +125,7 @@
           if (speed > targetSpeed) {
             speed = targetSpeed;
           }
-          speedDisplay.textContent = speed.toFixed(2) + " Mbps";
+          speedDisplay.textContent = speed.toFixed(1);
 
           // Stop updating speed when target speed is reached
           if (speed < targetSpeed) {
